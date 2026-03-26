@@ -1,0 +1,99 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Connect 4 - Start</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div id="startScreen">
+      <h1>Welcome to Connect 4</h1>
+      <label for="playerName">Enter your name:</label>
+      <input type="text" id="playerName" placeholder="Nickname" />
+      <button id="startButton">Start</button>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        console.log("Start screen DOM loaded");
+
+        if (typeof io !== "function") {
+          console.error(
+            "socket.io client not loaded. Check /socket.io/socket.io.js",
+          );
+          return;
+        }
+
+        const socket = io();
+
+        socket.on("connect", () => console.log("Socket connected:", socket.id));
+        socket.on("connect_error", (err) =>
+          console.error("Socket connect_error:", err),
+        );
+
+        const startBtn = document.getElementById("startButton");
+        const nameInput = document.getElementById("playerName");
+
+        if (!startBtn || !nameInput) {
+          console.error("Missing DOM elements: startButton or playerName");
+          return;
+        }
+
+        startBtn.addEventListener("click", () => {
+          const name = nameInput.value.trim();
+          console.log("Start clicked. Name:", name);
+
+          if (!name) {
+            alert("Please enter a name");
+            return;
+          }
+
+          // Save name locally
+          localStorage.setItem("playerName", name);
+
+          // tell server we want to join the lobby
+          console.log("Emitting joinLobby with name:", name);
+          socket.emit("joinLobby", name);
+
+          // show waiting message
+          startBtn.disabled = true;
+          startBtn.textContent = "Waiting for opponent...";
+        });
+
+        socket.on("waitingForOpponent", () => {
+          console.log("Server: waitingForOpponent");
+        });
+
+        //  match found
+        socket.on("matchFound", (data) => {
+          console.log("Server: matchFound", data);
+
+          const myID = socket.id;
+          const me = data.players.find((p) => p.id === myID);
+          const opponent = data.players.find((p) => p.id !== myID);
+
+          if (!me) {
+            console.error(
+              "Could not find 'me' in matchFound players:",
+              data.players,
+            );
+            return;
+          }
+
+          sessionStorage.setItem("roomID", data.roomID);
+          sessionStorage.setItem("playerNumber", me.number);
+          sessionStorage.setItem(
+            "playerName",
+            localStorage.getItem("playerName") || "",
+          );
+          sessionStorage.setItem("opponentName", opponent ? opponent.name : "");
+
+          // Go to game
+          window.location.href = "game.html";
+        });
+
+        socket.on("error", (err) => console.error("Socket error:", err));
+      });
+    </script>
+  </body>
+</html>
