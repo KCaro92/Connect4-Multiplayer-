@@ -1,0 +1,41 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Connect 4</title>
+    <link rel="stylesheet" href="style.css" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+  </head>
+
+  <body>
+    <script>
+      const playerName = localStorage.getItem("playerName") || "";
+      const opponentName = localStorage.getItem("opponentName") || "";
+    </script>
+
+    <div id="playerNames">
+      <span id="me"></span> vs <span id="opponent"></span>
+    </div>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const meEl = document.getElementById("me");
+        const oppEl = document.getElementById("opponent");
+        if (meEl) meEl.textContent = playerName || "You";
+        if (oppEl) oppEl.textContent = opponentName || "Opponent";
+      });
+    </script>
+
+    <div id="winBox" class="hidden" aria-hidden="true">
+      <div class="winInfo">
+        <p id="winMessage"></p>
+        <button id="playAgain">Play Again</button>
+      </div>
+    </div>
+
+    <div id="board" role="grid" aria-label="Connect 4 board"></div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="script.js"></script>
+  </body>
+</html>
